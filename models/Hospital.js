@@ -1,38 +1,55 @@
-const mongoose = require('mongoose');
-
+const mongoose = require('mongoose')
 
 const HospitalSchema = new mongoose.Schema({
-    name:{
+    name: {
         type: String,
         required: [true, 'Please add a name'],
         unique: true,
         trim: true,
-        maxlenfth: [50, 'Name can not be more than 50 characters']
+        maxlength: [50, 'Name cannot be more than 50 characters']
     },
-    address:{
+    address: {
         type: String,
         required: [true, 'Please add an address']
     },
-    district:{
+    district: {
         type: String,
         required: [true, 'Please add a district']
     },
-    province:{
+    province: {
         type: String,
         required: [true, 'Please add a province']
     },
-    postalcode:{
+    postalcode: {
         type: String,
         required: [true, 'Please add a postalcode'],
-        maxlenfth: [5, `Postal Code can not be more than 5 digits`]
+        maxlength: [5, 'Postal Code cannot be more than 5 digits']
     },
-    tel:{
+    tel: {
         type: String
     },
-    region:{
+    region: {
         type: String,
         required: [true, 'Please add a region']
     }
+}, {
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true}
 });
 
-module.exports=mongoose.model('Hospital', HospitalSchema);
+// Cascade delete appointments when a hospital is deleted
+HospitalSchema.pre('remove', async function(next) {
+    console.log(`Appointments being removed from hospital ${this._id}`);
+    await this.model('Appointment').deleteMany({hospital: this._id});
+    next();
+});
+
+// Reverse populate with virtuals
+HospitalSchema.virtual('appointments', {
+    ref: 'Appointment',
+    localField: '_id',
+    foreignField: 'hospital',
+    justOne: false
+});
+
+module.exports = mongoose.model('Hospital', HospitalSchema);
