@@ -26,14 +26,15 @@ const sendTokenResponse= (user, statusCode, res) => {
 // @access  Public
 exports.register = async (req, res, next) => {
     try{
-        const {name, email, password, role} = req.body;
+        const {name, email, password, role, phonenumber} = req.body;
 
         // Create user
         const user = await User.create({
             name,
             email,
             password,
-            role
+            role,
+            phonenumber
         });
 
         // Create token
@@ -106,4 +107,18 @@ exports.getMe = async (req, res, next) => {
         success: true,
         data: user
     })
+};
+
+//@desc     Log user out / vlear cookie
+//@route    GET /api/v1/auth/logout
+//@access   Private
+exports.logout = async(req,res,next) => {
+    res.cookie('token', 'none', {
+        expires: new Date(Date.now() + 10*1000),
+        httpOnly: true
+    });
+    res.status(200).json({
+        success: true,
+        data: {}
+    });
 };
